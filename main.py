@@ -2,9 +2,9 @@ import pandas as pd
 import time
 from colorama import Fore, init
 import codecs
-import numpy as np
 import sys
 import os
+import numpy as np
 
 
 def main():
@@ -18,11 +18,11 @@ def main():
     dfd = pd.read_csv(path)
     # dataframe with all columns emptys cleaned
     df = dfd.dropna(axis='columns', how='all')
+    df = dfd.replace(np.nan, 'NULL', regex=True)
 
     name_file = path.split('\\')
     name_file = name_file[- 1][:-4]
     o_f = os.path.join("generated_files/2010/", name_file + ".sql")
-    print(o_f)
     # output file with utf-8 encode
     f = codecs.open(o_f, 'w+', 'utf-8')
 
@@ -42,8 +42,6 @@ def main():
         f.write("VALUES( ")
 
         for k in range(0, len(df.values[i])):
-            print(df.values[i][k])
-
             if(isinstance(df.values[i][k], int)):
                 f.write(str(df.values[i][k]))
                 if k == len(df.columns.values) - 1:
@@ -51,7 +49,7 @@ def main():
                 else:
                     f.write(",")
 
-            elif(isinstance(df.values[i][k], str)):
+            if(isinstance(df.values[i][k], str)):
                 f.write("\"")
                 f.write(df.values[i][k])
                 f.write("\"")
@@ -60,21 +58,20 @@ def main():
                 else:
                     f.write(",")
 
-            elif(isinstance(df.values[i][k], float)):
-                if df.values[i][k] == 'nan':
-                    df.values[i][k] = " "
-                    f.write(df.values[i][k])
+            if(isinstance(df.values[i][k], float)):
+                f.write(str(df.values[i][k]))
                 if k == len(df.columns.values) - 1:
                     f.write("")
                 else:
                     f.write(",")
 
-        if i == len(df.columns.values) - 1:
+        if [i] == len(df.columns.values) - 1:
             f.write("\n")
         else:
             f.write(");\n")
     f.close()
 
+    print("Archivo de salida: " + name_file + ".sql")
     print("Parseado terminado : %s" % (time.time() - start_time))
 
 if __name__ == "__main__":
