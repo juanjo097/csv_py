@@ -6,15 +6,16 @@ import sys
 import os
 import numpy as np
 
+
 init(autoreset=True)
 
-def create_t(data, f_c, name_file):
+def create_t(data, f_c, name_file, year):
     try:
-        t_n = "CREATE TABLE " + "`" + name_file + "`" + " (\n"
+        t_n = "CREATE TABLE " + "`" + name_file + "_" + year + "`" + " (\n"
         f_c.write(t_n)
 
         for i in range(0, len(data)):
-            if 'id' in data[i]:
+            if 'id_' in data[i] or 'Id_' in data[i]:
                 f_c.write("\t`")
                 f_c.write(data[i].lower())
                 f_c.write("` ")
@@ -23,6 +24,16 @@ def create_t(data, f_c, name_file):
                     f_c.write("INT UNSIGNED DEFAULT NULL\n")
                 else:
                     f_c.write("INT UNSIGNED DEFAULT NULL,\n")
+
+            elif 'Nombre' in data[i] or 'Direccion' in data[i] or 'Observaciones' in data[i]:
+                f_c.write("\t`")
+                f_c.write(data[i].lower())
+                f_c.write("` ")
+
+                if i == len(data) - 1:
+                    f_c.write("TEXT DEFAULT NULL\n")
+                else:
+                    f_c.write("TEXT DEFAULT NULL,\n")
 
             else:
                 f_c.write("\t`")
@@ -34,8 +45,9 @@ def create_t(data, f_c, name_file):
                 else:
                     f_c.write("VARCHAR(255) DEFAULT NULL,\n")
         f_c.write(");")
-    except e:
-        print(Fore.RED + "Error al generar archivo CREATE")
+
+    except Exception as e:
+        print(Fore.RED + "Error al generar archivo CREATE", e)
 
 def insert_t():
     try:
@@ -50,15 +62,22 @@ def insert_t():
         df = dfd.dropna(axis='columns', how='all')
         df = dfd.replace(np.nan, 0, regex=True)
         name_file = path.split('\\')
+        year = name_file[1]
         name_file = name_file[- 1][:-4]
-        o_f_i = os.path.join("generated_files/2010/", name_file + ".sql")
-        o_f_c = os.path.join("generated_files/2010/", "create_table_" + name_file + ".sql")
+
+        # create dir if not exists
+        if not os.path.exists("generated_files/" + year):
+            os.makedirs(("generated_files/" + year))
+
+        # save on definitive path
+        o_f_i = os.path.join("generated_files/" + year + "/" + name_file + "_" + year + ".sql")
+        o_f_c = os.path.join("generated_files/" + year + "/" + "create_table_" + name_file + "_"+ year + ".sql")
         # output file with utf-8 encode
         f_i = codecs.open(o_f_i, 'w+', 'utf-8')
         f_c = codecs.open(o_f_c, 'w+', 'utf-8')
 
         f_i.write("INSERT INTO ")
-        f_i.write(name_file)
+        f_i.write(name_file + "_" + year)
         f_i.write("(")
 
         for h in range(0, len(df.columns.values)):
@@ -73,7 +92,7 @@ def insert_t():
             else:
                 f_i.write(",\n")
 
-        create_t(df.columns.values,f_c,name_file)
+        create_t(df.columns.values,f_c,name_file, year)
 
         for i in range(0, len(df.values)):
             f_i.write("(")
@@ -104,8 +123,8 @@ def insert_t():
 
         print(Fore.YELLOW + "Archivo de salida: " + name_file + ".sql")
         print(Fore.GREEN +"Parseado terminado : %s" % (time.time() - start_time))
-    except:
-        print(Fore.RED + "Error al generar archivo de INSERT")
+    except Exception as e:
+        print(Fore.RED + "Error al generar archivo de INSERT", e)
 
 def main():
     insert_t()
