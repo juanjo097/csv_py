@@ -1,6 +1,0 @@
-# ignore csv files
-*.csv
-# ignore sql files
-*.sql
-# ignore the folder
-CSV_FILES

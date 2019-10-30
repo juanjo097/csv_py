@@ -5,7 +5,7 @@ import codecs
 import sys
 import os
 import numpy as np
-
+import threading
 
 init(autoreset=True)
 
@@ -53,7 +53,6 @@ def insert_t():
     try:
         print(Fore.GREEN + "Escribiendo archivo sql...")
         start_time = time.time()
-
         #reading file from path
         path = sys.argv[1]
         # dataframe dirty
@@ -127,7 +126,10 @@ def insert_t():
         print(Fore.RED + "Error al generar archivo de INSERT", e)
 
 def main():
-    insert_t()
+    t = threading.Thread(target=insert_t)
+    t.start()
+    t.join()
+    #insert_t()
 
 if __name__ == "__main__":
     main()
